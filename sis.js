@@ -1,12 +1,55 @@
-/* SIS BO tools loader target v1.0
-   ENABLED=false にすると、このブックマークは何もせず「利用終了」を表示して止まる
-   ツールを更新したら stock.js をコミット → そのコミットIDを STOCK に書く → sis.js だけ jsDelivr で purge（stock.js はコミット固定なので即反映） */
+/* SIS BO tools loader target v2.0（ツール選択メニュー）
+   ・ENABLED=false にすると全ツールが止まり「利用終了」を表示する（契約終了時）
+   ・ツールごとに止めるときは TOOLS の on を false にする
+   ・ツールを足す／直すとき：tools/<id>.js をコミット → そのコミットIDを TOOLS の sha に書く → sis.js をコミット → sis.js だけ jsDelivr で purge
+     （ツール本体はコミット固定なので purge 不要・即反映）
+   ・where … 'bo'=メルカートBO / 'liny'=Liny管理画面。その画面で押したときだけメニューに出る
+   ・for … 'client'=先方も使う / 'sis'=SISの作業用（メニューでは「SIS作業用」の下に出る） */
 (function(){
 var ENABLED=true;
-var VERSION='1.4';
-var STOCK='https://cdn.jsdelivr.net/gh/qoo-ai/sis-bo-tools@79977a92296f23e4dfa75988ba3de8b0a1f2a14f/stock.js';
-function bar(msg,bg){var d=document.createElement('div');d.textContent=msg;d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px;background:'+(bg||'#344054')+';color:#fff;font:15px/1.5 sans-serif;text-align:center';document.body.appendChild(d);setTimeout(function(){d.remove();},8000);}
+var VERSION='2.0';
+var CDN='https://cdn.jsdelivr.net/gh/qoo-ai/sis-bo-tools@';
+var TOOLS=[
+ {id:'stock',  name:'在庫更新',     desc:'在庫更新シートの「取込用」→ 商品在庫の取込（［取込］の手前まで）', where:'bo',   for:'client', on:true, path:'stock.js',         sha:'79977a92296f23e4dfa75988ba3de8b0a1f2a14f'},
+ {id:'banner', name:'バナー反映',   desc:'バナー依頼シートの「バナー一覧」→ BOのバナー設定（T-33）',          where:'bo',   for:'sis',    on:true, path:'tools/banner.js',  sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
+ {id:'sale',   name:'セール1ボタン', desc:'セール指示書 → メルカート取込ファイル一式（T-19）',                where:'bo',   for:'sis',    on:true, path:'tools/sale.js',    sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
+ {id:'mailmag',name:'メルマガ',     desc:'メルマガの予約画面に流し込む',                                    where:'bo',   for:'sis',    on:true, path:'tools/mailmag.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
+ {id:'yoyaku', name:'予約取込',     desc:'商品インポート画面で、決めた時刻に［取込］を押す',                   where:'bo',   for:'sis',    on:true, path:'tools/yoyaku.js',  sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
+ {id:'line',   name:'LINE配信',     desc:'Linyの配信作成画面に流し込む',                                     where:'liny', for:'sis',    on:true, path:'tools/line.js',    sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'}
+];
+var D=document;
+function bar(msg,bg){var d=D.createElement('div');d.textContent=msg;d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px;background:'+(bg||'#344054')+';color:#fff;font:15px/1.5 sans-serif;text-align:center';D.body.appendChild(d);setTimeout(function(){d.remove();},8000);}
 if(!ENABLED){bar('このツールの提供は終了しました。','#667085');return;}
-if(!/\/(opipwy|doecms)\//.test(location.pathname)&&!/office\./.test(location.hostname)){bar('BO（管理画面）を開いた状態で押してください。','#b42318');return;}
-var s=document.createElement('script');s.src=STOCK;s.charset='utf-8';s.onerror=function(){bar('ツールを読み込めませんでした。時間をおいてもう一度押してください。','#b42318');};document.body.appendChild(s);
+var site=/(^|\.)manager\.liny\.jp$/.test(location.hostname)?'liny':(/\/(opipwy|doecms)\//.test(location.pathname)||/^office\..*mercart/.test(location.hostname))?'bo':null;
+if(!site){bar('BO（管理画面）またはLinyの画面を開いた状態で押してください。','#b42318');return;}
+function load(t){
+ var m=D.getElementById('sisMenu');if(m)m.remove();
+ var s=D.createElement('script');s.src=CDN+t.sha+'/'+t.path;s.charset='utf-8';
+ s.onerror=function(){bar('「'+t.name+'」を読み込めませんでした。時間をおいてもう一度押してください。','#b42318');};
+ D.body.appendChild(s);}
+var list=TOOLS.filter(function(t){return t.where===site;});
+var live=list.filter(function(t){return t.on;});
+if(!live.length){bar('この画面で使えるツールは提供を終了しました。','#667085');return;}
+if(live.length===1){load(live[0]);return;}
+var old=D.getElementById('sisMenu');if(old)old.remove();
+var box=D.createElement('div');box.id='sisMenu';
+box.style.cssText='position:fixed;top:12px;right:12px;z-index:2147483646;width:380px;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);overflow:auto;background:#fff;color:#101828;border:1px solid #d0d5dd;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,.18);font:14px/1.5 sans-serif';
+var head=D.createElement('div');head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #eaecf0;font-weight:bold';
+head.textContent='どのツールを使いますか？';
+var x=D.createElement('button');x.textContent='×';x.style.cssText='border:0;background:none;font-size:18px;cursor:pointer;color:#667085';x.onclick=function(){box.remove();};
+head.appendChild(x);box.appendChild(head);
+function group(label,arr){
+ if(!arr.length)return;
+ if(label){var h=D.createElement('div');h.textContent=label;h.style.cssText='padding:8px 14px 2px;font-size:12px;color:#667085';box.appendChild(h);}
+ arr.forEach(function(t){
+  var b=D.createElement('button');b.style.cssText='display:block;width:calc(100% - 20px);margin:6px 10px;padding:10px 12px;text-align:left;border:1px solid #d0d5dd;border-radius:8px;background:'+(t.on?'#fff':'#f2f4f7')+';cursor:'+(t.on?'pointer':'not-allowed')+';font:inherit;color:inherit';
+  var n=D.createElement('div');n.textContent=t.name+(t.on?'':'（提供終了）');n.style.fontWeight='bold';
+  var d=D.createElement('div');d.textContent=t.desc;d.style.cssText='font-size:12px;color:#475467';
+  b.appendChild(n);b.appendChild(d);
+  if(t.on)b.onclick=function(){load(t);};else b.disabled=true;
+  box.appendChild(b);});}
+group(null,list.filter(function(t){return t.for==='client';}));
+group('SIS作業用',list.filter(function(t){return t.for!=='client';}));
+var f=D.createElement('div');f.textContent='v'+VERSION;f.style.cssText='padding:4px 14px 8px;font-size:11px;color:#98a2b3;text-align:right';box.appendChild(f);
+D.body.appendChild(box);
 })();
