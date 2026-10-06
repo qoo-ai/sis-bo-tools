@@ -1,22 +1,16 @@
-/* SIS BO tools loader target v2.0（ツール選択メニュー）
-   ・ENABLED=false にすると全ツールが止まり「利用終了」を表示する（契約終了時）
-   ・ツールごとに止めるときは TOOLS の on を false にする
-   ・ツールを足す／直すとき：tools/<id>.js をコミット → そのコミットIDを TOOLS の sha に書く → sis.js をコミット → sis.js だけ jsDelivr で purge
-     （ツール本体はコミット固定なので purge 不要・即反映）
-   ・where … 'bo'=メルカートBO / 'liny'=Liny管理画面。その画面で押したときだけメニューに出る
-   ・for … 'client'=先方も使う / 'sis'=SISの作業用（メニューでは「SIS作業用」の下に出る） */
+/* SIS BO tools 本番用 loader v2.2（qoo-ai/sis-bo-tools）
+   ・ENABLED=false で全ツール停止（契約終了時）。ツール単位は TOOLS の on を false
+   ・ツールを足す／直す：tools/<id>.js をコミット → そのコミットIDを sha に書く → sis.js をコミット → sis.js だけ jsDelivr で purge
+   ・本番用（qoo-ai/sis-bo-tools）＝先方に渡すツールだけ。テスト用（qoo-ai/sis-bo-tools-test）＝全部。テストで固まったら本番へ同じファイルと1行を移す */
 (function(){
 var ENABLED=true;
-var VERSION='2.1';
+var VERSION='2.2';
 var CDN='https://cdn.jsdelivr.net/gh/qoo-ai/sis-bo-tools@';
 var TOOLS=[
- {id:'stock',  name:'在庫更新',     desc:'在庫更新シートの「取込用」→ 商品在庫の取込（［取込］の手前まで）', where:'bo',   for:'client', on:true, path:'stock.js',         sha:'79977a92296f23e4dfa75988ba3de8b0a1f2a14f'},
- {id:'banner', name:'バナー反映',   desc:'バナー依頼シートの「バナー一覧」→ BOのバナー設定（T-33）',          where:'bo',   for:'sis',    on:true, path:'tools/banner.js',  sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
- {id:'sale',   name:'セール1ボタン', desc:'セール指示書 → メルカート取込ファイル一式（T-19）',                where:'bo',   for:'sis',    on:true, path:'tools/sale.js',    sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
- {id:'mailmag',name:'メルマガ',     desc:'メルマガの予約画面に流し込む',                                    where:'bo',   for:'sis',    on:true, path:'tools/mailmag.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
- {id:'yoyaku', name:'予約取込',     desc:'商品インポート画面で、決めた時刻に［取込］を押す',                   where:'bo',   for:'sis',    on:true, path:'tools/yoyaku.js',  sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
- {id:'sanrio', name:'サンリオ掲載終了日延長（1回限り）', desc:'サンリオ14件の掲載終了日を2027/12/01に（在庫・状態はそのまま）。［取込］の手前まで', where:'bo', for:'sis', on:true, path:'tools/sanrio_end.js', sha:'9f5914108e0fa0ff164ced8a1287e5883f891c56'},
- {id:'line',   name:'LINE配信',     desc:'Linyの配信作成画面に流し込む',                                     where:'liny', for:'sis',    on:true, path:'tools/line.js',    sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'}
+ {id:"stock", name:"在庫更新", desc:"在庫更新シートの「取込用」→ 商品在庫の取込（［取込］の手前まで）", where:'bo', grp:'release', on:true, path:'stock.js', sha:'79977a92296f23e4dfa75988ba3de8b0a1f2a14f'},
+ {id:"banner", name:"バナー反映", desc:"バナー依頼シートの「バナー一覧」→ BOのバナー設定", where:'bo', grp:'release', on:true, path:'tools/banner.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
+ {id:"mailmag", name:"メルマガ", desc:"メルマガの予約画面に流し込む", where:'bo', grp:'release', on:true, path:'tools/mailmag.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
+ {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'}
 ];
 var D=document;
 function bar(msg,bg){var d=D.createElement('div');d.textContent=msg;d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px;background:'+(bg||'#344054')+';color:#fff;font:15px/1.5 sans-serif;text-align:center';D.body.appendChild(d);setTimeout(function(){d.remove();},8000);}
@@ -35,7 +29,7 @@ if(live.length===1){load(live[0]);return;}
 var old=D.getElementById('sisMenu');if(old)old.remove();
 var box=D.createElement('div');box.id='sisMenu';
 box.style.cssText='position:fixed;top:12px;right:12px;z-index:2147483646;width:380px;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);overflow:auto;background:#fff;color:#101828;border:1px solid #d0d5dd;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,.18);font:14px/1.5 sans-serif';
-var head=D.createElement('div');head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #eaecf0;font-weight:bold';
+var head=D.createElement('div');head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #eaecf0;font-weight:bold;background:#fff';
 head.textContent='どのツールを使いますか？';
 var x=D.createElement('button');x.textContent='×';x.style.cssText='border:0;background:none;font-size:18px;cursor:pointer;color:#667085';x.onclick=function(){box.remove();};
 head.appendChild(x);box.appendChild(head);
@@ -49,8 +43,7 @@ function group(label,arr){
   b.appendChild(n);b.appendChild(d);
   if(t.on)b.onclick=function(){load(t);};else b.disabled=true;
   box.appendChild(b);});}
-group(null,list.filter(function(t){return t.for==='client';}));
-group('SIS作業用',list.filter(function(t){return t.for!=='client';}));
+group(null,list);
 var f=D.createElement('div');f.textContent='v'+VERSION;f.style.cssText='padding:4px 14px 8px;font-size:11px;color:#98a2b3;text-align:right';box.appendChild(f);
 D.body.appendChild(box);
 })();

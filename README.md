@@ -1,11 +1,13 @@
-# sis-bo-tools
+# sis-bo-tools（本番用）
 
-SIS の作業用ブックマークのツール置き場です。ブックマークは1つだけで、押した画面に合わせてメニューを出します。
+先方（drug store's）にお渡ししているツールです。ブックマークは1つだけで、押した画面に合わせてメニューを出します。
 
-- メルカートBO：在庫更新／バナー反映／セール1ボタン／メルマガ／予約取込
+- メルカートBO：在庫更新／バナー反映／メルマガ
 - Liny：LINE配信（ツールが1つだけなので、メニューを出さずにすぐ起動）
 
-## ブックマーク（全員共通・登録し直しは不要）
+新しいツールや直したツールは、まずテスト用（qoo-ai/sis-bo-tools-test）で試します。固まったら、同じファイルと `sis.js` の1行をこちらへ移します。
+
+## ブックマーク
 
 ```
 javascript:(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/qoo-ai/sis-bo-tools@main/sis.js?t='+Date.now();s.charset='utf-8';document.body.appendChild(s);})();
@@ -23,4 +25,4 @@ javascript:(function(){var s=document.createElement('script');s.src='https://cdn
 3. `sis.js` をコミットする
 4. `https://purge.jsdelivr.net/gh/qoo-ai/sis-bo-tools@main/sis.js` を開いて、キャッシュを消す
 
-ツール本体はコミットIDで読み込むので、ツール側のキャッシュを消す必要はありません。正本はこのリポジトリです。Drive に置いた写しは参照用です。
+ツール本体はコミットIDで読み込むので、ツール側のキャッシュを消す必要はありません。
