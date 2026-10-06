@@ -7,7 +7,7 @@
    ・for … 'client'=先方も使う / 'sis'=SISの作業用（メニューでは「SIS作業用」の下に出る） */
 (function(){
 var ENABLED=true;
-var VERSION='2.0';
+var VERSION='2.1';
 var CDN='https://cdn.jsdelivr.net/gh/qoo-ai/sis-bo-tools@';
 var TOOLS=[
  {id:'stock',  name:'在庫更新',     desc:'在庫更新シートの「取込用」→ 商品在庫の取込（［取込］の手前まで）', where:'bo',   for:'client', on:true, path:'stock.js',         sha:'79977a92296f23e4dfa75988ba3de8b0a1f2a14f'},
@@ -15,6 +15,7 @@ var TOOLS=[
  {id:'sale',   name:'セール1ボタン', desc:'セール指示書 → メルカート取込ファイル一式（T-19）',                where:'bo',   for:'sis',    on:true, path:'tools/sale.js',    sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
  {id:'mailmag',name:'メルマガ',     desc:'メルマガの予約画面に流し込む',                                    where:'bo',   for:'sis',    on:true, path:'tools/mailmag.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
  {id:'yoyaku', name:'予約取込',     desc:'商品インポート画面で、決めた時刻に［取込］を押す',                   where:'bo',   for:'sis',    on:true, path:'tools/yoyaku.js',  sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
+ {id:'sanrio', name:'サンリオ掲載終了日延長（1回限り）', desc:'サンリオ14件の掲載終了日を2027/12/01に（在庫・状態はそのまま）。［取込］の手前まで', where:'bo', for:'sis', on:true, path:'tools/sanrio_end.js', sha:'9f5914108e0fa0ff164ced8a1287e5883f891c56'},
  {id:'line',   name:'LINE配信',     desc:'Linyの配信作成画面に流し込む',                                     where:'liny', for:'sis',    on:true, path:'tools/line.js',    sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'}
 ];
 var D=document;
