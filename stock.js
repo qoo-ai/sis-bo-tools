@@ -1,5 +1,5 @@
 (function(){
-/* SIS BO tools: stock import helper v1.3 (2026-10-06). Copies '商品コード/在庫数' rows from the clipboard into the BO product import (stock). The final [取込] button is always pressed by a person. */
+/* SIS BO tools: stock import helper v1.4 (2026-10-06). Copies '商品コード/在庫数' rows from the clipboard into the BO product import (stock). The final [取込] button is always pressed by a person. */
 var W=window,D=document,ROOT=location.origin+'/'+location.pathname.split('/')[1]+'/';
 var URL1=ROOT+'import/imp_goods.aspx';
 function el(t,css,txt){var e=D.createElement(t);if(css)e.style.cssText=css;if(txt)e.textContent=txt;return e;}
@@ -51,9 +51,9 @@ function master(){
   var t=new TextDecoder('utf-8').decode(b);if(t.indexOf('\ufffd')>=0)t=new TextDecoder('shift_jis').decode(b);
   return toMaster(csvp(t));});}
 function toMaster(a){
-  var h=a[0],ic=h.indexOf('商品コード'),iq=h.indexOf('在庫数'),is=-1,inm=h.indexOf('商品名'),ib=h.indexOf('掲載開始日'),ie=h.indexOf('掲載終了日');
+  var h=a[0],ic=h.indexOf('商品コード'),iq=h.indexOf('在庫数'),is=-1,inm=h.indexOf('商品名'),ib=h.indexOf('掲載開始日'),ie=h.indexOf('掲載終了日'),ig=h.indexOf('バリエーショングループ');
   h.forEach(function(x,k){if(is<0&&/^状態/.test(x))is=k;});if(ic<0||iq<0||is<0)throw 0;
-  var m={};for(var k=1;k<a.length;k++){var r=a[k];if(r[ic])m[r[ic]]={q:r[iq],s:r[is],n:inm>=0?r[inm]:'',b:ib>=0?r[ib]:'',e:ie>=0?r[ie]:''};}return m;}
+  var m={};for(var k=1;k<a.length;k++){var r=a[k];if(r[ic])m[r[ic]]={q:r[iq],s:r[is],n:inm>=0?r[inm]:'',b:ib>=0?r[ib]:'',e:ie>=0?r[ie]:'',g:ig>=0?r[ig]:''};}return m;}
 var SNAME={'1':'非表示','2':'下書き','3':'価格エラー','9':'終息'};
 function classify(all,m,now){
   var o={rows:[],un:[],pre:[],end:[],hid:[],miss:[],chg:0},inr={};
@@ -63,27 +63,51 @@ function classify(all,m,now){
    if(String(c.s)!=='0')o.hid.push(it);else if(b&&b>now)o.pre.push(it);else if(e&&e<now)o.end.push(it);});
   Object.keys(m).forEach(function(k){var c=m[k];if(inr[k]||String(c.s)!=='0'||!(parseInt(c.q,10)>0))return;var b=pd(c.b),e=pd(c.e);if((b&&b>now)||(e&&e<now))return;o.miss.push([k,c.q,c]);});
   return o;}
-function listText(o){
-  function L(t,a,f){return '■ '+t+' '+a.length+'件\n'+(a.length?a.map(f).join('\n'):'なし');}
+function sections(o){
   function nm(c){return String(c.n||'');}
   return [
-   L('シートにあるのにWebに無いコード（取り込みません）',o.un,function(x){return x[0]+'\tシートの在庫数 '+x[1];}),
-   L('シートにあるが発売前（掲載開始日がまだ先。在庫は取り込みます）',o.pre,function(x){return x[0]+'\t'+x[1]+' → '+x[2]+'\t掲載開始 '+x[3].b+'\t'+nm(x[3]);}),
-   L('シートにあるが掲載終了済み（在庫は取り込みますが、サイトには出ません）',o.end,function(x){return x[0]+'\t'+x[1]+' → '+x[2]+'\t掲載終了 '+x[3].e+'\t'+nm(x[3]);}),
-   L('シートにあるが状態が通常以外（サイトには出ません）',o.hid,function(x){return x[0]+'\t'+x[1]+' → '+x[2]+'\t状態 '+x[3].s+'（'+(SNAME[x[3].s]||'不明')+'）\t'+nm(x[3]);}),
-   L('シートに無いのにWebで販売中（状態0・掲載期間内・在庫1以上。在庫は今のまま）',o.miss,function(x){return x[0]+'\t今の在庫 '+x[1]+'\t'+nm(x[2]);})
-  ].join('\n\n');}
+   {t:'シートにあるのにWebに無いコード（取り込みません）',a:o.un,k:function(x){return x[0];},q0:function(){return '';},q1:function(x){return x[1];},d:function(){return '';},n:function(){return '';}},
+   {t:'シートにあるが発売前（掲載開始日がまだ先。在庫は取り込みます）',a:o.pre,k:function(x){return x[3].g||x[0];},q0:function(x){return x[1];},q1:function(x){return x[2];},d:function(x){return '掲載開始 '+x[3].b;},n:function(x){return nm(x[3]);}},
+   {t:'シートにあるが掲載終了済み（在庫は取り込みますが、サイトには出ません）',a:o.end,k:function(x){return x[3].g||x[0];},q0:function(x){return x[1];},q1:function(x){return x[2];},d:function(x){return '掲載終了 '+x[3].e;},n:function(x){return nm(x[3]);}},
+   {t:'シートにあるが状態が通常以外（サイトには出ません）',a:o.hid,k:function(x){return x[3].g||x[0];},q0:function(x){return x[1];},q1:function(x){return x[2];},d:function(x){return '状態 '+x[3].s+'（'+(SNAME[x[3].s]||'不明')+'）';},n:function(x){return nm(x[3]);}},
+   {t:'シートに無いのにWebで販売中（状態0・掲載期間内・在庫1以上。在庫は今のまま）',a:o.miss,k:function(x){return x[2].g||x[0];},q0:function(x){return x[1];},q1:function(x){return x[1];},d:function(){return '';},n:function(x){return nm(x[2]);}}
+  ].map(function(S){
+   var gs=[],ix={};
+   S.a.forEach(function(x){var key=S.k(x),d=S.d(x),G=ix[key];
+    if(!G){G=ix[key]={code:x[0],codes:[],q0:0,q1:0,d:d,n:S.n(x),nq:false};gs.push(G);}
+    G.codes.push(x[0]);var a0=parseInt(S.q0(x),10),a1=parseInt(S.q1(x),10);
+    if(isNaN(a0))G.nq=true;else G.q0+=a0; if(!isNaN(a1))G.q1+=a1;
+    if(G.d!==d)G.d=G.d.replace(/ .*$/,'')+' いろいろ';});
+   S.g=gs;return S;});}
+function cnt(S){return S.a.length+'件'+(S.g.length!==S.a.length?'（'+S.g.length+'商品）':'');}
+function listTSV(L){
+  return L.map(function(S){return '■ '+S.t+' '+cnt(S)+'\n'+(S.g.length?'代表コード\tバリエーション数\t今の在庫(合計)\t新しい在庫(合計)\t日付・状態\t商品名\t含まれるコード\n'+S.g.map(function(G){return [G.code,G.codes.length,G.nq?'':G.q0,G.q1,G.d,G.n,G.codes.join(' ')].join('\t');}).join('\n'):'なし');}).join('\n\n');}
+function listPanel(L){
+  var p=el('div','display:none;max-height:45vh;overflow:auto;padding:8px 12px;font:13px/1.5 sans-serif;color:#101828;background:#fff8e6;border-bottom:1px solid #f0c36d');
+  var td='padding:3px 10px;border-bottom:1px solid #f3dca8;white-space:nowrap;vertical-align:top',th=td+';background:#fdecc8;font-weight:bold;text-align:left;position:sticky;top:0';
+  L.forEach(function(S){
+   p.appendChild(el('div','font-weight:bold;margin:10px 0 4px','■ '+S.t+'　'+cnt(S)));
+   if(!S.g.length){p.appendChild(el('div','margin:0 0 6px 14px;color:#667085','なし'));return;}
+   var t=el('table','border-collapse:collapse;margin:0 0 6px 14px;font-variant-numeric:tabular-nums'),tr=el('tr');
+   ['代表コード','バリエーション','在庫 今 → 新（合計）','日付・状態','商品名'].forEach(function(h){tr.appendChild(el('th',th,h));});t.appendChild(tr);
+   S.g.forEach(function(G){var r=el('tr');
+    var c=el('td',td+';font-family:monospace',G.code);c.title=G.codes.join('\n');r.appendChild(c);
+    r.appendChild(el('td',td+';text-align:right',G.codes.length>1?G.codes.length+'バリエーション':'1'));
+    r.appendChild(el('td',td+';text-align:right',G.nq?'シート '+G.q1:(G.q0===G.q1?String(G.q0)+'（変化なし）':G.q0+' → '+G.q1)));
+    r.appendChild(el('td',td,G.d));r.appendChild(el('td',td.replace('white-space:nowrap','white-space:normal;min-width:240px'),G.n));
+    t.appendChild(r);});
+   p.appendChild(t);});
+  return p;}
 function run(all){
  say('メルカートの商品一覧と照らし合わせています…（'+all.length+'件）');
  master().then(function(m){
   var o=classify(all,m,new Date()),rows=o.rows;
   if(!rows.length){say('⛔ メルカートにある商品コードが1つもありません','シートの「取込用」をコピーし直してください。わからなければSISへ','ng');return;}
-  var pnl=el('div','display:none;max-height:45vh;overflow:auto;padding:8px 12px;font:12px/1.6 monospace;background:#fff8e6;border-bottom:1px solid #f0c36d;white-space:pre');
-  pnl.textContent=listText(o);
+  var L=sections(o),pnl=listPanel(L),tsv=listTSV(L);
   var tg=el('button','padding:4px 12px','一覧');tg.onclick=function(){pnl.style.display=pnl.style.display=='none'?'block':'none';};
-  var cp=el('button','padding:4px 12px','一覧をコピー');cp.onclick=function(){try{navigator.clipboard.writeText(pnl.textContent);cp.textContent='コピーしました';}catch(e){}};
+  var cp=el('button','padding:4px 12px','一覧をコピー');cp.onclick=function(){try{navigator.clipboard.writeText(tsv);cp.textContent='コピーしました';}catch(e){}};
   bar.insertBefore(cp,x);bar.insertBefore(tg,cp);box.insertBefore(pnl,bar.nextSibling);
-  go(rows,'（在庫が変わる '+o.chg+'件／Webに無い '+o.un.length+'件は飛ばします／発売前 '+o.pre.length+'・掲載終了 '+o.end.length+'・状態が通常以外 '+o.hid.length+'件／シートに無いのに販売中 '+o.miss.length+'件　中身は［一覧］）');
+  go(rows,'（在庫が変わる '+o.chg+'件／Webに無い '+cnt(L[0])+'は飛ばします／発売前 '+cnt(L[1])+'・掲載終了 '+cnt(L[2])+'・状態が通常以外 '+cnt(L[3])+'／シートに無いのに販売中 '+cnt(L[4])+'　中身は［一覧］）');
  },function(){go(all,'（※メルカートの商品一覧を読めなかったので、Webとの照合はしていません）');});}
 function go(rows,note){
  say('商品インポートの画面を開いています…（'+rows.length+'件）');
