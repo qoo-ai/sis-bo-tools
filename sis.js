@@ -1,16 +1,20 @@
-/* SIS BO tools 本番用 loader v2.2（qoo-ai/sis-bo-tools）
+/* SIS BO tools 本番用 menu v3.0（qoo-ai/sis-bo-tools）
+   ブックマーク → 小窓(go.html)がGitHubに最新コミットを聞く → このファイルをそのコミットで読む → ツールも同じコミットで読む
+   ＝コミットした瞬間に反映（jsDelivrのブランチキャッシュを通らない）。小窓が使えない時だけ @main（最大12時間遅れ）で動く。
    ・ENABLED=false で全ツール停止（契約終了時）。ツール単位は TOOLS の on を false
-   ・ツールを足す／直す：tools/<id>.js をコミット → そのコミットIDを sha に書く → sis.js をコミット → sis.js だけ jsDelivr で purge
-   ・本番用（qoo-ai/sis-bo-tools）＝先方に渡すツールだけ。テスト用（qoo-ai/sis-bo-tools-test）＝全部。テストで固まったら本番へ同じファイルと1行を移す */
+   ・ツールを足す／直す：tools/<id>.js をコミットし、足す場合は TOOLS に1行。sha の書き換えもキャッシュ消しも不要
+   ・本番用（qoo-ai/sis-bo-tools）＝先方に渡すツールだけ。テスト用（qoo-ai/sis-bo-tools-test）＝全部 */
 (function(){
 var ENABLED=true;
-var VERSION='2.2';
-var CDN='https://cdn.jsdelivr.net/gh/qoo-ai/sis-bo-tools@';
+var VERSION='3.0';
+var ME=(document.currentScript&&document.currentScript.src)||'';
+var REF=(ME.match(/@([0-9a-f]{40}|main)\//)||[])[1]||'main';
+var CDN='https://cdn.jsdelivr.net/gh/qoo-ai/sis-bo-tools@'+REF+'/';
 var TOOLS=[
- {id:"stock", name:"在庫更新", desc:"在庫更新シートの「取込用」→ 商品在庫の取込（［取込］の手前まで）", where:'bo', grp:'release', on:true, path:'stock.js', sha:'79977a92296f23e4dfa75988ba3de8b0a1f2a14f'},
- {id:"banner", name:"バナー反映", desc:"バナー依頼シートの「バナー一覧」→ BOのバナー設定", where:'bo', grp:'release', on:true, path:'tools/banner.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
- {id:"mailmag", name:"メルマガ", desc:"メルマガの予約画面に流し込む", where:'bo', grp:'release', on:true, path:'tools/mailmag.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'},
- {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js', sha:'ac8215d6e12679441f4615fc6a579ef9de9a8123'}
+ {id:"stock", name:"在庫更新", desc:"在庫更新シートの「取込用」→ 商品在庫の取込（［取込］の手前まで）", where:'bo', grp:'release', on:true, path:'stock.js'},
+ {id:"banner", name:"バナー反映", desc:"バナー依頼シートの「バナー一覧」→ BOのバナー設定", where:'bo', grp:'release', on:true, path:'tools/banner.js'},
+ {id:"mailmag", name:"メルマガ", desc:"メルマガの予約画面に流し込む", where:'bo', grp:'release', on:true, path:'tools/mailmag.js'},
+ {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js'}
 ];
 var D=document;
 function bar(msg,bg){var d=D.createElement('div');d.textContent=msg;d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px;background:'+(bg||'#344054')+';color:#fff;font:15px/1.5 sans-serif;text-align:center';D.body.appendChild(d);setTimeout(function(){d.remove();},8000);}
@@ -19,7 +23,7 @@ var site=/(^|\.)manager\.liny\.jp$/.test(location.hostname)?'liny':(/\/(opipwy|d
 if(!site){bar('BO（管理画面）またはLinyの画面を開いた状態で押してください。','#b42318');return;}
 function load(t){
  var m=D.getElementById('sisMenu');if(m)m.remove();
- var s=D.createElement('script');s.src=CDN+t.sha+'/'+t.path;s.charset='utf-8';
+ var s=D.createElement('script');s.src=CDN+t.path;s.charset='utf-8';
  s.onerror=function(){bar('「'+t.name+'」を読み込めませんでした。時間をおいてもう一度押してください。','#b42318');};
  D.body.appendChild(s);}
 var list=TOOLS.filter(function(t){return t.where===site;});
@@ -44,6 +48,6 @@ function group(label,arr){
   if(t.on)b.onclick=function(){load(t);};else b.disabled=true;
   box.appendChild(b);});}
 group(null,list);
-var f=D.createElement('div');f.textContent='v'+VERSION;f.style.cssText='padding:4px 14px 8px;font-size:11px;color:#98a2b3;text-align:right';box.appendChild(f);
+var f=D.createElement('div');f.textContent='v'+VERSION+(REF==='main'?'（予備経路）':' · '+REF.slice(0,7));f.style.cssText='padding:4px 14px 8px;font-size:11px;color:#98a2b3;text-align:right';box.appendChild(f);
 D.body.appendChild(box);
 })();
