@@ -15,6 +15,7 @@ var TOOLS=[
  {id:"banner", name:"バナー反映", desc:"バナー依頼シートの「バナー一覧」→ BOのバナー設定", where:'bo', grp:'release', on:true, path:'tools/banner.js'},
  {id:"mailmag", name:"メルマガ", desc:"メルマガの予約画面に流し込む", where:'bo', grp:'release', on:true, path:'tools/mailmag.js'},
  {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js'},
+ {id:"keeper", name:"セッション維持", desc:"作業中だけ、約5分の自動ログアウトを防ぐ（延長の確認が出たら自動で「続けて使用する」）。OFFにするかタブを閉じるまで有効", where:'bo', grp:'release', on:true, path:'tools/keeper.js'},
  {id:"member", name:"会員ランク特典（月初）", desc:"毎月月初に「一般クーポン4種」「誕生日クーポン5種」「メール3種」を送付する", where:'bo', grp:'release', on:true, path:'tools/member.js'}
 ];
 var D=document;
@@ -22,12 +23,15 @@ function bar(msg,bg){var d=D.createElement('div');d.textContent=msg;d.style.cssT
 if(!ENABLED){bar('このツールの提供は終了しました。','#667085');return;}
 var site=/(^|\.)manager\.liny\.jp$/.test(location.hostname)?'liny':(/\/(opipwy|doecms)\//.test(location.pathname)||/^office\..*mercart/.test(location.hostname))?'bo':null;
 if(!site){bar('BO（管理画面）またはLinyの画面を開いた状態で押してください。','#b42318');return;}
+// セッション維持（keeper）ON中は、画面が枠の中にあるので、メニューも枠の中で開き直す（他ツールが枠の中の画面に効くように）
+try{var K=window.__boKeeper;if(K&&K.frame&&K.frame.contentDocument&&K.frame.contentDocument.body){var fs=K.frame.contentDocument.createElement('script');fs.src=ME||(CDN+'sis.js');fs.charset='utf-8';K.frame.contentDocument.body.appendChild(fs);return;}}catch(e){}
+var KEEPER_ON=(function(){try{return !!(window.top!==window&&window.top.__boKeeper);}catch(e){return false;}})();
 function load(t){
  var m=D.getElementById('sisMenu');if(m)m.remove();
  var s=D.createElement('script');s.src=CDN+t.path;s.charset='utf-8';
  s.onerror=function(){bar('「'+t.name+'」を読み込めませんでした。時間をおいてもう一度押してください。','#b42318');};
  D.body.appendChild(s);}
-var list=TOOLS.filter(function(t){return t.where===site;});
+var list=TOOLS.filter(function(t){return t.where===site;}).map(function(t){if(t.id==='keeper'&&KEEPER_ON){return {id:t.id,name:'セッション維持：ON中（押すとOFF）',desc:'押すと枠を外して普通の画面に戻します',where:t.where,grp:t.grp,on:t.on,path:t.path};}return t;});
 var live=list.filter(function(t){return t.on;});
 if(!live.length){bar('この画面で使えるツールは提供を終了しました。','#667085');return;}
 if(live.length===1){load(live[0]);return;}
