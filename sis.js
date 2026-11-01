@@ -15,7 +15,7 @@ var TOOLS=[
  {id:"banner", name:"バナー反映", desc:"バナー依頼シートの「バナー一覧」→ BOのバナー設定", where:'bo', grp:'release', on:true, path:'tools/banner.js'},
  {id:"mailmag", name:"メルマガ", desc:"メルマガの予約画面に流し込む", where:'bo', grp:'release', on:true, path:'tools/mailmag.js'},
  {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js'},
- {id:"keeper", name:"セッション維持", desc:"作業中だけ、約5分の自動ログアウトを防ぐ（延長の確認が出たら自動で「続けて使用する」）。OFFにするかタブを閉じるまで有効", where:'bo', grp:'release', on:true, path:'tools/keeper.js'},
+ {id:"keeper", name:"セッション維持", desc:"BackOfficeを自動ログアウトから防ぐツール", where:'bo', grp:'release', on:true, path:'tools/keeper.js'},
  {id:"member", name:"会員ランク特典（月初）", desc:"毎月月初に「一般クーポン4種」「誕生日クーポン5種」「メール3種」を送付する", where:'bo', grp:'release', on:true, path:'tools/member.js'}
 ];
 var D=document;
@@ -31,7 +31,7 @@ function load(t){
  var s=D.createElement('script');s.src=CDN+t.path;s.charset='utf-8';
  s.onerror=function(){bar('「'+t.name+'」を読み込めませんでした。時間をおいてもう一度押してください。','#b42318');};
  D.body.appendChild(s);}
-var list=TOOLS.filter(function(t){return t.where===site;}).map(function(t){if(t.id==='keeper'&&KEEPER_ON){return {id:t.id,name:'セッション維持：ON中（押すとOFF）',desc:'押すと枠を外して普通の画面に戻します',where:t.where,grp:t.grp,on:t.on,path:t.path};}return t;});
+var list=TOOLS.filter(function(t){return t.where===site;}).map(function(t){if(t.id==='keeper'&&KEEPER_ON){return {id:t.id,name:'セッション維持：ON中（押すとOFF）',desc:'BackOfficeを自動ログアウトから防ぐツール',where:t.where,grp:t.grp,on:t.on,path:t.path};}return t;});
 var live=list.filter(function(t){return t.on;});
 if(!live.length){bar('この画面で使えるツールは提供を終了しました。','#667085');return;}
 if(live.length===1){load(live[0]);return;}
