@@ -14,7 +14,8 @@ var TOOLS=[
  {id:"stock", name:"在庫更新", desc:"在庫更新シートの「取込用」→ 商品在庫の取込（［取込］の手前まで）", where:'bo', grp:'release', on:true, path:'stock.js'},
  {id:"banner", name:"バナー反映", desc:"バナー依頼シートの「バナー一覧」→ BOのバナー設定", where:'bo', grp:'release', on:true, path:'tools/banner.js'},
  {id:"mailmag", name:"メルマガ", desc:"メルマガの予約画面に流し込む", where:'bo', grp:'release', on:true, path:'tools/mailmag.js'},
- {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js'}
+ {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js'},
+ {id:"member", name:"会員ランク特典（月初）", desc:"1日7時のランク更新のあと（3営業日以内）に ①グループとクーポンを作成 → ②メール送信を進める（#SP-1M）", where:'bo', grp:'release', on:true, path:'tools/member.js'}
 ];
 var D=document;
 function bar(msg,bg){var d=D.createElement('div');d.textContent=msg;d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px;background:'+(bg||'#344054')+';color:#fff;font:15px/1.5 sans-serif;text-align:center';D.body.appendChild(d);setTimeout(function(){d.remove();},8000);}
