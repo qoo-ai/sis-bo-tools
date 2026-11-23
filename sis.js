@@ -16,7 +16,8 @@ var TOOLS=[
  {id:"mailmag", name:"メルマガ", desc:"メルマガの予約画面に流し込む", where:'bo', grp:'release', on:true, path:'tools/mailmag.js'},
  {id:"line", name:"LINE配信", desc:"Linyの配信作成画面に流し込む", where:'liny', grp:'release', on:true, path:'tools/line.js'},
  {id:"keeper", name:"セッション維持", desc:"BackOfficeを自動ログアウトから防ぐツール", where:'bo', grp:'release', on:true, path:'tools/keeper.js'},
- {id:"member", name:"会員ランク特典（月初）", desc:"毎月月初に「一般クーポン4種」「誕生日クーポン5種」「メール3種」を送付する", where:'bo', grp:'release', on:true, path:'tools/member.js'}
+ {id:"member", name:"会員ランク特典（月初）", desc:"毎月月初に「一般クーポン4種」「誕生日クーポン5種」「メール3種」を送付する", where:'bo', grp:'release', on:true, path:'tools/member.js'},
+ {id:"happybag", name:"ハッピーバッグ", desc:"福袋の配送希望日の設定と、お年玉クーポンの付与", where:'bo', grp:'release', on:true, path:'tools/happybag.js'}
 ];
 var D=document;
 function bar(msg,bg){var d=D.createElement('div');d.textContent=msg;d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px;background:'+(bg||'#344054')+';color:#fff;font:15px/1.5 sans-serif;text-align:center';D.body.appendChild(d);setTimeout(function(){d.remove();},8000);}
